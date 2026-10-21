@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: spada-notifier
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --timeout 90
+    envVars:
+      - key: SPADA_USERNAME
+        sync: false
+      - key: SPADA_PASSWORD
+        sync: false
+      - key: ATTENDANCE_URLS
+        sync: false
+      - key: NTFY_TOPIC
+        sync: false
+      - key: CHECK_KEY
+        sync: false
