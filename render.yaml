@@ -10,9 +10,13 @@ services:
         sync: false
       - key: SPADA_PASSWORD
         sync: false
+      - key: COURSE_URLS
+        sync: false
       - key: ATTENDANCE_URLS
         sync: false
       - key: NTFY_TOPIC
         sync: false
       - key: CHECK_KEY
+        sync: false
+      - key: SPADA_VERIFY_SSL
         sync: false
