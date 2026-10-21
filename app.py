@@ -33,8 +33,29 @@ PASSWORD = os.environ.get("SPADA_PASSWORD", "")
 CHECK_KEY = os.environ.get("CHECK_KEY", "")
 URLS = [u.strip() for u in os.environ.get("ATTENDANCE_URLS", "").split(",") if u.strip()]
 
+# --- SSL: server SPADA kadang tidak mengirim sertifikat intermediate ---
+# Opsi 1 (aman): taruh sertifikat intermediate (PEM) di repo, isi SPADA_EXTRA_CERT=intermediate.pem
+# Opsi 2 (kurang aman): SPADA_VERIFY_SSL=false
+EXTRA_CERT = os.environ.get("SPADA_EXTRA_CERT", "")
+VERIFY_SSL = os.environ.get("SPADA_VERIFY_SSL", "true").strip().lower() != "false"
+
+
+def build_verify():
+    if not VERIFY_SSL:
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        return False
+    if EXTRA_CERT:
+        import certifi
+        combined = "/tmp/ca-combined.pem"
+        with open(certifi.where()) as a, open(EXTRA_CERT) as b, open(combined, "w") as out:
+            out.write(a.read() + "\n" + b.read() + "\n")
+        return combined
+    return True
+
+
 STATE_FILE = "/tmp/notified.json"
-UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"
+UA ="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"
 
 app = Flask(__name__)
 _lock = threading.Lock()
@@ -61,6 +82,7 @@ def save_state(s):
 def login():
     s = requests.Session()
     s.headers["User-Agent"] = UA
+    s.verify = build_verify()
     r = s.get(f"{BASE}/login/index.php", timeout=30)
     soup = BeautifulSoup(r.text, "html.parser")
     token_el = soup.find("input", {"name": "logintoken"})

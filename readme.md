@@ -39,3 +39,9 @@ Buka URL `/check?key=...` di browser. Hasilnya JSON, misal:
 - Kalau SPADA ganti tampilan, deteksi link presensi bisa perlu disesuaikan.
 - Kalau login gagal terus dari Render, kemungkinan SPADA memblokir IP server.
 - Tambah mata kuliah lain: tambahkan URL presensinya ke `ATTENDANCE_URLS`.
+
+## Error SSL (CERTIFICATE_VERIFY_FAILED)
+Server SPADA tidak mengirim sertifikat intermediate. Dua solusi:
+- **Cepat (kurang aman):** di Render tambah env `SPADA_VERIFY_SSL` = `false`.
+  Koneksi tetap terenkripsi, tapi identitas server tidak diverifikasi.
+- **Aman:** export sertifikat intermediate SPADA dari browser (klik gembok -> Certificate -> Details -> pilih sertifikat di tengah rantai -> Export PEM), simpan sebagai `intermediate.pem` di root repo, lalu tambah env `SPADA_EXTRA_CERT` = `intermediate.pem`.
