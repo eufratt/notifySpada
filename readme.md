@@ -31,8 +31,9 @@ Salah satu dari `COURSE_URLS` atau `ATTENDANCE_URLS` harus diisi. Boleh dua-duan
 ## 3. Cron di cron-job.org
 - URL: `https://NAMA-APP.onrender.com/check?key=ISI_CHECK_KEY`
 - Method: GET
-- Interval: tiap 5 menit (atau 10)
-- Timeout request: 60 detik (Render free butuh ~30-50 detik bangun dari tidur)
+- Jadwal: pilih **Custom**, Hours 7-17, Minutes kelipatan 5 (crontab `*/5 7-17 * * *`). Pastikan timezone job = Asia/Jakarta (tab Advanced).
+- Timeout request: 30 detik (maksimal di cron-job.org). Render free yang sedang tidur butuh ~30-60 detik untuk bangun, jadi pengecekan pertama pagi hari bisa gagal timeout. Tidak apa-apa: server tetap nyala dan pengecekan 5 menit berikutnya normal. Selama jam 7-17 server tidak tidur lagi karena dipanggil tiap 5 menit.
+- Opsional, supaya pengecekan jam 7:00 tidak kena cold start: buat job kedua ke `https://NAMA-APP.onrender.com/` (tanpa `/check`), jadwal Every day at 6:55. Job ini cuma membangunkan server, boleh gagal timeout.
 
 ## 4. Tes
 Buka URL `/check?key=...&verbose=1` di browser. Hasilnya JSON, misal:
@@ -46,6 +47,13 @@ Buka URL `/check?key=...&verbose=1` di browser. Hasilnya JSON, misal:
 - `modules_found` = jumlah modul presensi yang ketemu di halaman matkul. Kalau 0 atau jauh lebih sedikit dari yang kamu lihat di SPADA, kabari aku.
 - `open` = jumlah sesi presensi yang terbuka, `notified` = notif yang dikirim.
 - Tanpa `&verbose=1`, `results` cuma menampilkan modul yang sedang terbuka.
+
+### Tes notif ke HP (tanpa nunggu jadwal kuliah)
+Buka `https://NAMA-APP.onrender.com/test?key=ISI_CHECK_KEY` di browser.
+- HP bunyi dengan notif "Tes notif SPADA" -> jalur Render -> ntfy -> HP sudah beres.
+- Muncul `ok: false` atau notif tidak masuk -> cek `NTFY_TOPIC` di Render, harus sama persis dengan topic yang kamu subscribe di app ntfy.
+
+Ini hanya menguji pengiriman notif. Deteksi sesi presensi yang terbuka baru terbukti saat ada sesi yang benar-benar terbuka.
 
 ## Catatan
 - Notif dikirim sekali per sesi. State disimpan di /tmp, jadi kalau Render restart bisa kena notif ulang sekali.

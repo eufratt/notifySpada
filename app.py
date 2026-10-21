@@ -268,5 +268,17 @@ def check():
     return jsonify(checked=len(targets), courses=course_info, results=results, errors=errors)
 
 
+@app.get("/test")
+def test_notif():
+    """Kirim notif percobaan ke ntfy (untuk memastikan Render -> ntfy -> HP jalan)."""
+    if not CHECK_KEY or request.args.get("key") != CHECK_KEY:
+        abort(403)
+    try:
+        notify("Tes notif SPADA", "Kalau kamu baca ini, notif dari bot ke HP sudah jalan.", BASE)
+    except Exception as e:
+        return jsonify(ok=False, error=str(e)), 502
+    return jsonify(ok=True)
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
