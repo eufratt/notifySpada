@@ -29,7 +29,7 @@ from urllib.parse import urljoin, urlparse, parse_qs
 
 import requests
 from bs4 import BeautifulSoup
-from flask import Flask, abort, jsonify, request
+from flask import Flask, Response, abort, jsonify, request
 
 
 def _split(name):
@@ -193,13 +193,18 @@ def check():
     if not (USERNAME and PASSWORD and (URLS or COURSE_URLS)):
         return jsonify(error="SPADA_USERNAME / SPADA_PASSWORD dan ATTENDANCE_URLS atau COURSE_URLS belum diset"), 500
     verbose = request.args.get("verbose") == "1"
+    # Default: balasan teks super pendek (cron-job.org menolak balasan besar: "output too large").
+    # Untuk JSON lengkap tambahkan ?full=1 (atau ?verbose=1).
+    full = verbose or request.args.get("full") == "1"
 
     with _lock:
         notified = load_state()
         try:
             s = login()
         except Exception as e:
-            return jsonify(error=str(e)), 502
+            if full:
+                return jsonify(error=str(e)), 502
+            return Response("error login: " + str(e)[:150], status=502, mimetype="text/plain")
 
         errors = []
         course_info = []
@@ -265,7 +270,15 @@ def check():
 
         save_state(notified)
 
-    return jsonify(checked=len(targets), courses=course_info, results=results, errors=errors)
+    if full:
+        return jsonify(checked=len(targets), courses=course_info, results=results, errors=errors)
+
+    open_total = sum(r["open"] for r in results)
+    sent_total = sum(r["notified"] for r in results)
+    line = f"ok checked={len(targets)} open={open_total} sent={sent_total} errors={len(errors)}"
+    if errors:
+        line += " | " + str(errors[0]["error"])[:120]
+    return Response(line, mimetype="text/plain")
 
 
 @app.get("/test")

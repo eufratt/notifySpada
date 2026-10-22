@@ -36,7 +36,8 @@ Salah satu dari `COURSE_URLS` atau `ATTENDANCE_URLS` harus diisi. Boleh dua-duan
 - Opsional, supaya pengecekan jam 7:00 tidak kena cold start: buat job kedua ke `https://NAMA-APP.onrender.com/` (tanpa `/check`), jadwal Every day at 6:55. Job ini cuma membangunkan server, boleh gagal timeout.
 
 ## 4. Tes
-Buka URL `/check?key=...&verbose=1` di browser. Hasilnya JSON, misal:
+`/check?key=...` membalas satu baris pendek (supaya tidak kena "output too large" di cron-job.org), misal `ok checked=19 open=0 sent=0 errors=0`.
+Untuk JSON lengkap saat tes, buka `/check?key=...&full=1` (atau `&verbose=1` untuk menampilkan semua modul). Hasilnya JSON, misal:
 
 ```
 {"checked": 10,
@@ -56,6 +57,7 @@ Buka `https://NAMA-APP.onrender.com/test?key=ISI_CHECK_KEY` di browser.
 Ini hanya menguji pengiriman notif. Deteksi sesi presensi yang terbuka baru terbukti saat ada sesi yang benar-benar terbuka.
 
 ## Catatan
+- Kalau cron-job.org menampilkan "Failed (output too large)", pastikan URL cron TIDAK memakai `&full=1` atau `&verbose=1`.
 - Notif dikirim sekali per sesi. State disimpan di /tmp, jadi kalau Render restart bisa kena notif ulang sekali.
 - Kalau SPADA ganti tampilan, deteksi link presensi bisa perlu disesuaikan.
 - Kalau login gagal terus dari Render, kemungkinan SPADA memblokir IP server.
