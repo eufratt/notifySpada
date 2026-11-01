@@ -1,12 +1,13 @@
 name: bangunin render
 
-# Membangunkan Render (free) sebelum jam kuliah. Jadwal GitHub memakai UTC.
-# 06:00 WIB = 23:00 UTC hari sebelumnya, jadi Senin-Jumat WIB = Minggu-Kamis UTC.
-# GitHub kadang telat beberapa menit, jadi ada dua kali percobaan.
+# Membangunkan Render (free) dan menjaganya tetap nyala sebelum jam kuliah.
+# Jadwal GitHub memakai UTC: 06:00 WIB = 23:00 UTC hari sebelumnya,
+# jadi Senin-Jumat WIB = Minggu-Kamis UTC.
+# Ping tiap 10 menit dari 06:00 sampai 06:50 WIB (Render tidur setelah 15 menit sepi),
+# sehingga saat cron-job.org mulai mengecek jam 07:00 server sudah nyala.
 on:
   schedule:
-    - cron: "0 23 * * 0-4"   # 06:00 WIB
-    - cron: "30 23 * * 0-4"  # 06:30 WIB
+    - cron: "*/10 23 * * 0-4"   # 06:00, 06:10, ..., 06:50 WIB
   workflow_dispatch:          # tombol "Run workflow" untuk tes manual
 
 jobs:
