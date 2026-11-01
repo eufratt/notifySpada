@@ -1,0 +1,30 @@
+name: bangunin render
+
+# Membangunkan Render (free) sebelum jam kuliah. Jadwal GitHub memakai UTC.
+# 06:00 WIB = 23:00 UTC hari sebelumnya, jadi Senin-Jumat WIB = Minggu-Kamis UTC.
+# GitHub kadang telat beberapa menit, jadi ada dua kali percobaan.
+on:
+  schedule:
+    - cron: "0 23 * * 0-4"   # 06:00 WIB
+    - cron: "30 23 * * 0-4"  # 06:30 WIB
+  workflow_dispatch:          # tombol "Run workflow" untuk tes manual
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Ping sampai server menjawab "ok"
+        run: |
+          URL="https://notifyspada.onrender.com/"
+          for i in $(seq 1 15); do
+            body=$(curl -s --max-time 40 "$URL" || true)
+            if [ "$body" = "ok" ]; then
+              echo "Server sudah bangun (percobaan $i)"
+              exit 0
+            fi
+            echo "Percobaan $i: belum bangun, tunggu 15 detik"
+            sleep 15
+          done
+          echo "Server tidak bangun setelah 15 percobaan"
+          exit 1
